@@ -1,0 +1,13 @@
+/Makefile
+/Makefile.in
+/aclocal.m4
+/aitom4te.cache/
+/config.*
+/install-sh
+/libtool
+/limain.sh
+/missing
+.deps/
+.dirstamp
+.libs/
+*.l[ao]
