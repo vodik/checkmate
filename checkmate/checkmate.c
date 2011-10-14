@@ -12,6 +12,7 @@
 #include "tester.h"
 #include "testset.h"
 #include "ipc.h"
+#include "isolate.h"
 
 /* static volatile sig_atomic_t got_SIGCHLD = 0; */
 /*  */
@@ -135,11 +136,24 @@ wait_for_child(pid_t child, int *action)
 	return 0;
 }
 
+int pipefd[2];
+
+int
+_test_set(const void *arg)
+{
+	const struct testset *testset = arg;
+
+	/* child */
+	close(pipefd[0]);
+	_run_testset(testset, pipefd[1]);
+
+	return 0;
+}
+
 int
 run_testset(const struct testset *testset, const struct score_cb *cb)
 {
 	pid_t set;
-	int pipefd[2];
 
 	if (pipe(pipefd) == -1) {
 		perror("pipe");
@@ -147,20 +161,7 @@ run_testset(const struct testset *testset, const struct score_cb *cb)
 	}
 
 	setsid();
-
-	switch (set = fork()) {
-		case -1:
-			perror("fork");
-			exit(EXIT_FAILURE);
-			break;
-		case 0:
-			/* child */
-			close(pipefd[0]);
-			_run_testset(testset, pipefd[1]);
-
-			/* should not get here */
-			exit(EXIT_FAILURE);
-	}
+    set = isolate(_test_set, testset);
 
 	/* parent */
 	close(pipefd[1]);

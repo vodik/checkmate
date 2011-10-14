@@ -141,7 +141,7 @@ send_msg(int ipc)
 }
 
 int
-_test(void *arg)
+_test(const void *arg)
 {
 	const struct test *test = arg;
 
@@ -167,7 +167,7 @@ _run_test(const struct test *test, int ipc)
 	msg.event = TEST_START;
 	send_msg(ipc);
 
-	child = isolate((const void *)_test, test);
+	child = isolate(_test, test);
 
 	/* parent */
 	close(pfds[1]);
