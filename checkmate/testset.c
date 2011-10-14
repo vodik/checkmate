@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 
 #include "ipc.h"
+#include "isolate.h"
 
 char buf[1024];
 static struct test_msg msg;
@@ -139,6 +140,18 @@ send_msg(int ipc)
 	}
 }
 
+int
+_test(void *arg)
+{
+	const struct test *test = arg;
+
+	/* child */
+	close(pfds[0]);
+	run_test(test);
+
+	return 0;
+}
+
 void
 _run_test(const struct test *test, int ipc)
 {
@@ -154,20 +167,7 @@ _run_test(const struct test *test, int ipc)
 	msg.event = TEST_START;
 	send_msg(ipc);
 
-	switch (child = fork()) {
-		case -1:
-			perror("fork");
-			exit(EXIT_FAILURE);
-			break;
-		case 0:
-			/* child */
-			close(pfds[0]);
-			run_test(test);
-
-			/* should not get here */
-			exit(EXIT_FAILURE);
-			break;
-	}
+	child = isolate((const void *)_test, test);
 
 	/* parent */
 	close(pfds[1]);
