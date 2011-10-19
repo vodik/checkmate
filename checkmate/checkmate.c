@@ -153,12 +153,7 @@ _test_set(const void *arg)
 int
 run_testset(const struct testset *testset, const struct score_cb *cb)
 {
-	pid_t set;
-
-	if (pipe(pipefd) == -1) {
-		perror("pipe");
-		exit(EXIT_FAILURE);
-	}
+	struct cell *set;
 
 	setsid();
     set = isolate(_test_set, testset);
@@ -170,7 +165,7 @@ run_testset(const struct testset *testset, const struct score_cb *cb)
 	close(pipefd[0]);
 
 	int r, action = 0;
-	r = wait_for_child(set, &action);
+	r = wait_for_child(set->pid, &action);
 
 	printf("\n----------------------\n");
 	if (r == 0)

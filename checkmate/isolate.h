@@ -3,8 +3,13 @@
 
 #include <unistd.h>
 
+struct cell {
+	pid_t pid;
+	int pfd;
+};
+
 typedef int (*isolate_fn)(const void *arg);
 
-pid_t isolate(isolate_fn func, const void *arg);
+struct cell *isolate(isolate_fn func, const void *arg);
 
 #endif

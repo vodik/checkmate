@@ -155,7 +155,8 @@ _test(const void *arg)
 void
 _run_test(const struct test *test, int ipc)
 {
-	pid_t child;
+	/* pid_t child; */
+	struct cell *child;
 	int r, action = 0;
 
 	if (pipe(pfds) == -1) {
@@ -172,7 +173,7 @@ _run_test(const struct test *test, int ipc)
 	/* parent */
 	close(pfds[1]);
 	watch_pipe();
-	r = wait_for_child(child, &action);
+	r = wait_for_child(child->pid, &action);
 
 	if (r == 0) {
 		msg.event = TEST_PASS;

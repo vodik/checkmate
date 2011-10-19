@@ -5,23 +5,30 @@
 #include <string.h>
 #include <errno.h>
 
-pid_t
+struct cell *
 isolate(isolate_fn func, const void *arg)
 {
-	pid_t child;
+	struct cell *cell = malloc(sizeof(struct cell));
+	int pipefd[2];
 
-	switch (child = fork()) {
+	if (pipe(pipefd) == -1) {
+		perror("pipe");
+		exit(EXIT_FAILURE);
+	}
+
+	switch (cell->pid = fork()) {
 		case -1:
 			perror("fork");
 			exit(EXIT_FAILURE);
 			break;
 		case 0:
 			/* child */
-			/* close(pfds[0]); */
-			/* run_test(test); */
+			close(pipefd[0]);
 			exit(func(arg));
 			break;
 	}
 
-	return child;
+	close(pipefd[1]);
+	cell->pfd = pipefd[0];
+	return cell;
 }
